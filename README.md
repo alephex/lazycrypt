@@ -16,6 +16,7 @@ Currently, just the default settings for cryptsetup are used (256 bit aes in cbc
 
 ### To create a 10GB filesystem called mysecret.dat
 `./lazycrypt.sh -n ~/mysecret.dat -s 10`
+
 You will now have a 10GB file called *mysecret.dat* in your current directory. You will also have a 10GB 
 encrypted filesystem mounted at */mnt/lazycrypt/mysecret.dat*
 
