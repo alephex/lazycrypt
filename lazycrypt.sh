@@ -35,7 +35,7 @@ function usage {
   echo -e "\nUsage:\n\
     \t$0 -n file [-s size]\tMake a new file system of size GB (default 1)\n\
     \t$0 -o file\t\t\tOpen an existing encrypted file system\n\
-    \t$0 -c file\t\t\tClose an existing encrypted file system\n\n\
+    \t$0 -c file\t\t\tClose an existing encrypted file system\n\
     Eg: create a new 10GB encrypted filesystem in a file called mysecret.txt\n\
     \t$0 -n mysecret.txt -s 10\n\
     NOTES:\n\
@@ -100,7 +100,7 @@ function new_file {
   fi
 
   # Create an empty file
-  dd of=$full_path bs=$sizeG count=0 seek=1 &> /dev/null
+  dd of=$full_path bs=$size count=0 seek=1 &> /dev/null
   if [ $? = 0 ]; then 
     echo -e "\tDone"
   else
@@ -142,7 +142,7 @@ function new_file {
   echo "Setting up encryption ..."
   fsname=$(basename $full_path)
   cryptsetup --verify-passphrase luksFormat /dev/loop0
-  echo "\nThis is the same passphrase:"
+  echo -e "\nThis is the same passphrase:"
   cryptsetup luksOpen /dev/loop0 $fsname
   cryptsetup status $fsname
 
@@ -172,9 +172,16 @@ function new_file {
   mount /dev/mapper/$fsname /mnt/lazycrypt/$fsname &> /dev/null
   if [ $? = 0 ]; then 
     echo "Encrypted filesystem available at /mnt/lazycrypt/$fsname"
+  else
+    echo -e "\tCould not mount $fsname"
+    exit 1
+  fi
+  chown -R $SUDO_USER /mnt/lazycrypt/$fsname &> /dev/null
+  if [ $? = 0 ]; then 
+    echo -e "\tEncrypted filesystem /mnt/lazycrypt/$fsname is owned by $SUDO_USER"
     exit 0
   else
-    echo "\tCould not mount $fsname"
+    echo -e "\tCould not change owner for $fsname"
     exit 1
   fi
 
@@ -193,6 +200,7 @@ function open_file {
     losetup /dev/loop0 $full_path
 
     # Cryptsetup on our loop device
+    echo -e "\nPassphrase required:"
     cryptsetup luksOpen /dev/loop0 $fsname
 
     # Make a directory and mount the device there
@@ -200,9 +208,16 @@ function open_file {
     mount /dev/mapper/$fsname /mnt/lazycrypt/$fsname &> /dev/null
     if [ $? = 0 ]; then 
       echo "Encrypted filesystem available at /mnt/lazycrypt/$fsname"
+    else
+      echo "Could not mount $fsname"
+      exit 1
+    fi
+    chown -R $SUDO_USER /mnt/lazycrypt/$fsname &> /dev/null
+    if [ $? = 0 ]; then 
+      echo -e "Encrypted filesystem /mnt/lazycrypt/$fsname is owned by $SUDO_USER"
       exit 0
     else
-      echo "\tCould not mount $fsname"
+      echo "Could not change owner for $fsname"
       exit 1
     fi
   fi
@@ -217,7 +232,8 @@ function close_file {
   fsname=$(basename $full_path)
 
   # Unmount
-  umount /mnt/crypter/$fsname
+  umount /mnt/lazycrypt/$fsname
+  rm -rf /mnt/lazycrypt/$fsname
 
   # Clear /dev/mapper
   cryptsetup luksClose $fsname
