@@ -36,4 +36,29 @@ function usage {
   exit 1
 }
 
+# Check for the tools we need. Most distros should have them in their 
+# base install.
+function check_tools {
+  echo "Checking tools ..."
+
+  tools="cryptsetup losetup dd mkfs"
+  tool_status=0
+  tool_missing=""
+  for t in $tools; do 
+    which $t &> /dev/null
+    if [ $? = 0 ]; then 
+      echo "$t ... OK"
+    else
+      echo "$t ... not found"
+      tool_status=1
+      tool_missing="$tool_missing $t"
+    fi
+  done
+
+  if [ $tool_status = 1 ]; then
+    echo "Please install the missing tools: $tool_missing"
+    exit 1
+  fi
+}
+
 
