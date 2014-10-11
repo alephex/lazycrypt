@@ -22,13 +22,16 @@ OPTIND=1
 
 # We need to be uid 0 to play in /dev
 if [[ $UID != 0 ]]; then
+
   echo "We need to sudo to use device files."
   sudo $0 $*
   exit 1
+
 fi
 
 # Print usage
 function usage {
+
   echo -e "\nUsage:\n\
     \t$0 -n file [-s size]\tMake a new file system of size GB (default 1)\n\
     \t$0 -o file\tOpen an existing encrypted file system\n\
@@ -37,14 +40,16 @@ function usage {
     \t$0 -n mysecret.txt -s 10\n\
     NOTES:\n\
     \tOnly integer file sizes are allowed for now.\n\
-    \tCryptsetup will prompt you for a passphrase to encrypt the volume with.\n"
+    \tCryptsetup will prompt you for a passphrase to encrypt the volume\n"
   exit 1
+
 }
 
 # Check for the tools we need. Most distros should have them in their 
 # base install.
 function check_tools {
-  echo "Checking tools ..."
+
+echo "Checking tools ..."
 
   tools="cryptsetup losetup dd mkfs"
   tool_status=0
@@ -64,11 +69,13 @@ function check_tools {
     echo "Please install the missing tools: $tool_missing"
     exit 1
   fi
+
 }
 
 # Create a new container file
 function new_file {
-  # Test if the file exists
+
+# Test if the file exists
   full_path=$(readlink -f $1)
   if [ -f $full_path ]; then 
     echo "File $full_path exists. Overwrite? [y/n]"
@@ -170,5 +177,56 @@ function new_file {
     echo "\tCould not mount $fsname"
     exit 1
   fi
+
 }
+
+# Open an existing file
+function open_file {
+
+  # Test if the file exists
+  full_path=$(readlink -f $1)
+  if [ -f $full_path ]; then 
+    # Get the filename
+    fsname=$(basename $full_path)
+
+    # Setup loop device
+    losetup /dev/loop0 $full_path
+
+    # Cryptsetup on our loop device
+    cryptsetup luksOpen /dev/loop0 $fsname
+
+    # Make a directory and mount the device there
+    mkdir /mnt/lazycrypt /mnt/lazycrypt/$fsname &> /dev/null
+    mount /dev/mapper/$fsname /mnt/lazycrypt/$fsname &> /dev/null
+    if [ $? = 0 ]; then 
+      echo "Encrypted filesystem available at /mnt/lazycrypt/$fsname"
+      exit 0
+    else
+      echo "\tCould not mount $fsname"
+      exit 1
+    fi
+  fi
+
+}
+
+# Close an open file
+function close_file {
+
+  # Get file info
+  full_path=$(readlink -f $1)
+  fsname=$(basename $full_path)
+
+  # Unmount
+  umount /mnt/crypter/$fsname
+
+  # Clear /dev/mapper
+  cryptsetup luksClose $fsname
+
+  # Release our loop deice back into the wild
+  losetup -d /dev/loop0
+
+  echo "Closed file $1"
+
+}
+
 
