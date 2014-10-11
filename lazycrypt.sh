@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-VERSION="0.1.1"
+VERSION="0.1.2"
 
 # Reset getopts
 OPTIND=1
@@ -251,17 +251,22 @@ function close_file {
 # Get command line args
 # Default file size in GB
 fsize=1
+action="usage"
+arg=""
 while getopts "hn:o:c:s:" opt; do
   case "$opt" in
-    h)  usage
+    h)  action="usage"
         ;;
     s)  fsize=$OPTARG
         ;;
-    n)  new_file $OPTARG $fsize
+    n)  action="new_file"
+        arg=$OPTARG
         ;;
-    o)  open_file $OPTARG
+    o)  action="open_file"
+        arg=$OPTARG
         ;;
-    c)  close_file $OPTARG
+    c)  action="close_file"
+        arg=$OPTARG
         ;;
     esac
 done
@@ -269,5 +274,13 @@ done
 shift $((OPTIND-1))
 
 [ "$1" = "--" ] && shift
+
+# Do the thing
+case "$action" in 
+  usage)    usage;;
+  new_file) new_file $arg $fsize;;
+  open_file) open_file $arg;;
+  close_file) close_file $arg;;
+esac
 
 # Fin
