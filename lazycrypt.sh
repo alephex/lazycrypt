@@ -34,8 +34,8 @@ function usage {
 
   echo -e "\nUsage:\n\
     \t$0 -n file [-s size]\tMake a new file system of size GB (default 1)\n\
-    \t$0 -o file\tOpen an existing encrypted file system\n\
-    \t$0 -c file\tClose an existing encrypted file system\n\n\
+    \t$0 -o file\t\t\tOpen an existing encrypted file system\n\
+    \t$0 -c file\t\t\tClose an existing encrypted file system\n\n\
     Eg: create a new 10GB encrypted filesystem in a file called mysecret.txt\n\
     \t$0 -n mysecret.txt -s 10\n\
     NOTES:\n\
