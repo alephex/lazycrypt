@@ -229,4 +229,26 @@ function close_file {
 
 }
 
+# Get command line args
+# Default file size in GB
+fsize=1
+while getopts "hn:o:c:s:" opt; do
+  case "$opt" in
+    h)  usage
+        ;;
+    s)  fsize=$OPTARG
+        ;;
+    n)  new_file $OPTARG $fsize
+        ;;
+    o)  open_file $OPTARG
+        ;;
+    c)  close_file $OPTARG
+        ;;
+    esac
+done
 
+shift $((OPTIND-1))
+
+[ "$1" = "--" ] && shift
+
+# Fin
