@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+VERSION="0.1"
+
 # Reset getopts
 OPTIND=1
 
@@ -32,6 +34,7 @@ fi
 # Print usage
 function usage {
 
+  echo "LazyCrypt Version $VERSION"
   echo -e "\nUsage:\n\
     \t$0 -n file [-s size]\tMake a new file system of size GB (default 1)\n\
     \t$0 -o file\t\t\tOpen an existing encrypted file system\n\
