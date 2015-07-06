@@ -235,17 +235,22 @@ function close_file {
   fsname=$(basename $full_path)
 
   # Unmount
-  umount /mnt/lazycrypt/$fsname
-  rm -rf /mnt/lazycrypt/$fsname
+  umount /mnt/lazycrypt/$fsname &> /dev/null
+  if [ $? = 0 ]; then
+    rm -rf /mnt/lazycrypt/$fsname
 
-  # Clear /dev/mapper
-  cryptsetup luksClose $fsname
+    # Clear /dev/mapper
+    cryptsetup luksClose $fsname
 
-  # Release our loop deice back into the wild
-  losetup -d /dev/loop0
+    # Release our loop device back into the wild
+    losetup -d /dev/loop0
 
-  echo "Closed file $1"
-
+    echo "Closed file $1"
+    exit 0
+  else
+    echo "Could not unmount $fsname. Is it still in use?"
+    exit 1
+  fi
 }
 
 # Get command line args
