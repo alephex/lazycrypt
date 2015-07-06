@@ -2,7 +2,7 @@
 
 # LazyCrypt automates the creation, mounting and unmounting of file 
 # based LUKS encrypted filesystems.
-# Copyright (C) 2014  Mike Dunne <mike@nullcipher.eu>
+# Copyright (C) 2015  Alephex <alephex@alephex.com>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-VERSION="0.1.2"
+VERSION="0.1.3"
 
 # Reset getopts
 OPTIND=1
