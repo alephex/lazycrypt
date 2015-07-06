@@ -2,7 +2,7 @@
 
 # LazyCrypt automates the creation, mounting and unmounting of file 
 # based LUKS encrypted filesystems.
-# Copyright (C) 2014  Mike Dunne <mike@nullcipher.eu>
+# Copyright (C) 2015  Alephex <alephex@alephex.com>
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-VERSION="0.1.2"
+VERSION="0.1.3"
 
 # Reset getopts
 OPTIND=1
@@ -36,11 +36,11 @@ function usage {
 
   echo "LazyCrypt Version $VERSION"
   echo -e "\nUsage:\n\
-    \t$0 -n file [-s size]\tMake a new file system of size GB (default 1)\n\
+    \t$0 -n file [-s size]\tMake a new file system of size MB (default 1)\n\
     \t$0 -o file\t\t\tOpen an existing encrypted file system\n\
     \t$0 -c file\t\t\tClose an existing encrypted file system\n\
-    Eg: create a new 10GB encrypted filesystem in a file called mysecret.txt\n\
-    \t$0 -n mysecret.txt -s 10\n\
+    Eg: create a new 100MB encrypted filesystem in a file called mysecret\n\
+    \t$0 -n mysecret -s 10\n\
     NOTES:\n\
     \tOnly integer file sizes are allowed for now.\n\
     \tCryptsetup will prompt you for a passphrase to encrypt the volume\n"
@@ -96,10 +96,10 @@ function new_file {
   # Check the size given, set to 0 as default
   test $2 -eq 0 2>/dev/null
   if [ $? -eq 2 ]; then
-    echo "Invalid size given. Setting to 1GB."
-    size="1G"
+    echo "Invalid size given. Setting to 1MB."
+    size="1M"
   else
-    size=$2"G"
+    size=$2"M"
   fi
 
   # Create an empty file
@@ -235,17 +235,22 @@ function close_file {
   fsname=$(basename $full_path)
 
   # Unmount
-  umount /mnt/lazycrypt/$fsname
-  rm -rf /mnt/lazycrypt/$fsname
+  umount /mnt/lazycrypt/$fsname &> /dev/null
+  if [ $? = 0 ]; then
+    rm -rf /mnt/lazycrypt/$fsname
 
-  # Clear /dev/mapper
-  cryptsetup luksClose $fsname
+    # Clear /dev/mapper
+    cryptsetup luksClose $fsname
 
-  # Release our loop deice back into the wild
-  losetup -d /dev/loop0
+    # Release our loop device back into the wild
+    losetup -d /dev/loop0
 
-  echo "Closed file $1"
-
+    echo "Closed file $1"
+    exit 0
+  else
+    echo "Could not unmount $fsname. Is it still in use?"
+    exit 1
+  fi
 }
 
 # Get command line args
